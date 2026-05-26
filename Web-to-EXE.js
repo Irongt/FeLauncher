@@ -41,7 +41,7 @@
 
     abrirPrograma(args) {
       // Trigger the system protocol
-      window.location.href = `festore://${args.DATA}`;
+      window.location.href = `felauncher://${args.DATA}`;
     }
 
     alRecibirDato() {
