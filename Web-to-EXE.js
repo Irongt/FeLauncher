@@ -4,12 +4,29 @@
   class WebToExe {
     constructor() {
       this.dataRecibido = "";
-      // Listen for the custom event sent from Electron
-      window.addEventListener('token-recibido', (e) => {
-        this.dataRecibido = e.detail;
-        // Trigger the hat block
-        Scratch.vm.runtime.startHats('webtoexe_alRecibirDato');
-      });
+      this.conectarWebSocket();
+    }
+
+    conectarWebSocket() {
+      // Nos conectamos al servidor que abrirá nuestro script en segundo plano
+      const ws = new WebSocket('ws://localhost:8080');
+
+      ws.onmessage = (e) => {
+        this.dataRecibido = e.data;
+        // Activamos el bloque HAT de PenguinMod
+        if (Scratch.vm && Scratch.vm.runtime) {
+          Scratch.vm.runtime.startHats('webtoexe_alRecibirDato');
+        }
+      };
+
+      ws.onclose = () => {
+        // Si se desconecta, intenta volver a conectar cada 3 segundos
+        setTimeout(() => this.conectarWebSocket(), 3000);
+      };
+
+      ws.onerror = () => {
+        // Evita que los errores saturen la consola si el .bat aún no está abierto
+      };
     }
 
     getInfo() {
@@ -40,12 +57,11 @@
     }
 
     abrirPrograma(args) {
-      // Trigger the system protocol
+      // Llama al protocolo personalizado de Windows
       window.location.href = `felauncher://${args.DATA}`;
     }
 
     alRecibirDato() {
-      // Hat blocks do not require logic here
       return false;
     }
 
@@ -54,6 +70,5 @@
     }
   }
 
-  // Register the class correctly
   Scratch.extensions.register(new WebToExe());
 })(Scratch);
